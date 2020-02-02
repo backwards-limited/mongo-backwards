@@ -7,10 +7,10 @@ However, this module is also published on [JitPack](https://jitpack.io), where t
 
 ```scala
 lazy val backwards: Seq[ModuleID] = {
-  val version = "1.0.8"
+  val version = "<version>"
 
   Seq(
-    "com.github.backwards-limited" % "mongo-backwards" % version % "test, it" classifier "tests"
+    "com.github.backwards-limited" % "mongo-backwards" % version % Test classifier "tests"
   ) ++ Seq(
     "com.github.backwards-limited" % "mongo-backwards" % version
   )
