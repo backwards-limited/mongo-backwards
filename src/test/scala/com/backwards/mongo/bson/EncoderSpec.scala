@@ -16,4 +16,3 @@ class EncoderSpec extends AnyWordSpec with Matchers {
   }
 }
 
-final case class User(id: String, name: String, age: Int)
