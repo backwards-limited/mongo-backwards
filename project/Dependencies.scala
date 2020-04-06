@@ -4,7 +4,7 @@ object Dependencies {
   def apply(): Seq[ModuleID] = Seq(
     scalatest, scalacheck, scalacheckShapeless, pureConfig,
     cats, mouse, simulacrum, refined, monocle, shapeless,
-    fs2, mongo
+    fs2, mongo, datastax
   ).flatten
   
   lazy val scalatest: Seq[ModuleID] = Seq(
@@ -81,4 +81,13 @@ object Dependencies {
   lazy val mongo: Seq[ModuleID] = Seq(
     "org.mongodb.scala" %% "mongo-scala-driver" % "4.0.1" withSources() withJavadoc()
   )
+
+  lazy val datastax: Seq[ModuleID] = {
+    val group = "com.datastax.oss"
+    val version = "4.5.1"
+
+    Seq(
+      "java-driver-core", "java-driver-query-builder", "java-driver-mapper-processor", "java-driver-mapper-runtime"
+    ).map(group % _ % version withSources() withJavadoc())
+  }
 }

@@ -7,7 +7,7 @@ CQL=${4:-schema.cql}
 
 until cqlsh ${HOST} -u ${USER} -p ${PASSWORD} -f ${CQL}; do
   echo "Cassandra is unavailable - will retry..."
-  sleep 3
+  sleep 5
 done
 
 sleep 1
