@@ -1,4 +1,3 @@
-import Dependencies._
 import sbt._
 
 lazy val root = project("mongo-backwards", file("."))
@@ -12,6 +11,7 @@ def project(id: String, base: File): Project =
         Resolver.sonatypeRepo("releases"),
         Resolver.sonatypeRepo("snapshots"),
         Resolver.bintrayRepo("cakesolutions", "maven"),
+        Resolver.bintrayRepo("dmbl", "dinogroup"),
         "Artima Maven Repository" at "http://repo.artima.com/releases",
         "jitpack" at "https://jitpack.io",
         "Confluent Platform Maven" at "http://packages.confluent.io/maven/"
@@ -23,7 +23,7 @@ def project(id: String, base: File): Project =
       autoStartServer := false,
       addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full),
       addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
-      libraryDependencies ++= dependencies,
+      libraryDependencies ++= Dependencies(),
       scalacOptions ++= Seq(
         "-encoding", "utf8",
         "-deprecation",

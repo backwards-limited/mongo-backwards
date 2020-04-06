@@ -1,0 +1,31 @@
+version: "3.7"
+
+services:
+  mongo:
+    image: bitnami/mongodb:latest
+    hostname: mongo
+    container_name: mongo
+    ports:
+      - 27017:27017
+    environment:
+      ALLOW_EMPTY_PASSWORD: "yes"
+
+  cassandra:
+    image: bitnami/cassandra:latest
+    hostname: cassandra
+    container_name: cassandra
+    ports:
+      - 9042:9042
+
+  cassandra-client:
+    image: bitnami/cassandra:latest
+    hostname: cassandra-client
+    container_name: cassandra-client
+    links:
+      - cassandra
+    depends_on:
+      - cassandra
+    volumes:
+      - ./docker/cassandra:/cassandra
+    command:
+      - /cassandra/schema.sh
