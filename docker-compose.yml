@@ -28,4 +28,8 @@ services:
     volumes:
       - ./docker/cassandra:/cassandra
     command:
-      - /cassandra/schema.sh
+      - /bin/sh
+      - -c
+      - |
+        cd /cassandra
+        ./schema.sh
