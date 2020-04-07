@@ -23,7 +23,9 @@ object Dependencies {
     val group = "com.github.pureconfig"
     val version = "0.12.3"
 
-    Seq("pureconfig").map(group %% _ % version withSources() withJavadoc())
+    Seq(
+      "pureconfig-core", "pureconfig-generic", "pureconfig-cats", "pureconfig-cats-effect", "pureconfig-fs2"
+    ).map(group %% _ % version withSources() withJavadoc())
   }
 
   lazy val cats: Seq[ModuleID] = {

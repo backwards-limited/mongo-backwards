@@ -9,6 +9,9 @@ import com.datastax.oss.driver.api.core.cql.{PreparedStatement, ResultSet, Simpl
 import com.datastax.oss.driver.api.core.{CqlIdentifier, CqlSession}
 import com.backwards.cassandra.Decoder.ops._
 
+/**
+ * cqlsh localhost -u cassandra -p cassandra
+ */
 object Demo extends App {
   import scala.jdk.FutureConverters._ // TODO
 
