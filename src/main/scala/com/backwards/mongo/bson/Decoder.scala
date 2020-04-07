@@ -39,9 +39,9 @@ abstract class DecoderImplicits {
   }
 
   implicit def genDecoder[A, H <: HList](
-    implicit Gen: LabelledGeneric.Aux[A, H],
-    Decoder: Lazy[Decoder[H]]
+    implicit G: LabelledGeneric.Aux[A, H],
+    D: Lazy[Decoder[H]]
   ): Decoder[A] = { bsonValue =>
-    Decoder.value.decode(bsonValue).map(Gen.from)
+    D.value.decode(bsonValue).map(G.from)
   }
 }

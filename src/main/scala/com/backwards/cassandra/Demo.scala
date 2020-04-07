@@ -12,21 +12,9 @@ import com.datastax.oss.driver.internal.core.`type`.codec.UuidCodec
 import com.datastax.oss.driver.internal.core.cql.DefaultBoundStatement
 import com.datastax.oss.driver.shaded.guava.common.util.concurrent.ListenableFuture
 import scala.jdk.CollectionConverters._
+import scala.util.{Failure, Success}
 
 object Demo extends App {
-  /*lazy val cluster: Cluster = {
-    val builder = Cluster.builder()
-    for (cp <- cassandraHosts) builder.addContactPoint(cp)
-    builder.withPort(cassandraPort)
-    builder.withPoolingOptions(poolingOptions)
-
-    builder.build()
-  }
-
-  lazy implicit val session: Session = cluster.connect()
-  */
-
-
   /*val cluster = Cluster.builder().addContactPoint("127.0.0.1").build();
   val session = cluster.connect()
   val manager = new MappingManager(session)
@@ -37,8 +25,6 @@ object Demo extends App {
 
   import scala.jdk.FutureConverters._
 
-  // val javaFuture = java.util.concurrent.CompletableFuture.completedFuture(12)
- // val scalaFuture = javaFuture.asScala
 
   implicit class CqlStrings(val context: StringContext) extends AnyVal {
     def cql(args: Any*)(implicit session: CqlSession): Future[PreparedStatement] = {
@@ -49,22 +35,13 @@ object Demo extends App {
 
   import scala.concurrent.{ ExecutionContext, Future, Promise }
 
-
+  // TODO IO from Future
   def execute(statement: Future[PreparedStatement], params: Any*)(
     implicit executionContext: ExecutionContext, session: CqlSession
   ): Future[ResultSet] =
     statement
-      //.map(_.bind(params.map(_.asInstanceOf[Object])))
-      .map { x =>
-        println(x)
-        val y = x.bind(params: _*)
-        println(y)
-        y
-      }
-      .map { blah =>
-        println(blah)
-        session.execute(blah)
-      }
+      .map(_.bind(params: _*))
+      .map(session.execute)
 
   implicit val session: CqlSession =
     CqlSession
@@ -76,31 +53,29 @@ object Demo extends App {
       //.addTypeCodecs(TypeCodecs.UUID)
       .build
 
-  val myKey = UUID.randomUUID()
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  /*import com.datastax.oss.driver.api.core.co
-  import com.datastax.oss.driver.api.core.type.codec*/
+  val user = User(UUID.randomUUID(), "Bob", "Boo", "email@gmail.com")
 
-  val resultSet: Future[ResultSet] = execute(
-    cql"SELECT * FROM mykeyspace.user_by_id WHERE id = ?",
-    myKey
-  )
+  val resultSet: Future[ResultSet] = for {
+    x <- execute(cql"insert into mykeyspace.user_by_id (id, email, firstname, lastname) values (?, ?, ?, ?)", user.id, user.email, user.firstName, user.lastName)
+    y <- execute(cql"select * from mykeyspace.user_by_id where id = ?", user.id)
+  } yield y
 
 
-  resultSet.onComplete { rs =>
-    println(s"===> RS = $rs")
-    println(rs.get.getColumnDefinitions.iterator().asScala.toList.mkString(", "))
+
+  resultSet.onComplete {
+    case Failure(t) =>
+      t.printStackTrace()
+    case Success(resultSet) =>
+      resultSet.iterator().asScala.toList.foreach { row =>
+        println(row.getString("firstname"))
+
+        println(Decoder[User].decode(row))
+      }
   }
 
 
   TimeUnit.SECONDS.sleep(5)
-
-
-  /*
-  ResultSet rs = session.execute("select release_version from system.local");              // (2)
-  Row row = rs.one();
-  System.out.println(row.getString("release_version"));
-   */
 }
