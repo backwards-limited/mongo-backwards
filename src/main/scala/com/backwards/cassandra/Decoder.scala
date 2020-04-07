@@ -1,34 +1,22 @@
 package com.backwards.cassandra
 
 import java.util.UUID
+import scala.jdk.CollectionConverters._
+import scala.reflect.{ClassTag, _}
 import cats.implicits._
-import shapeless.labelled.{FieldType, field}
 import shapeless._
-import com.datastax.oss.driver.api.core.cql.Row
+import shapeless.labelled.{FieldType, field}
+import com.datastax.oss.driver.api.core.cql.{ColumnDefinition, Row}
 
 abstract class Decoder[A] {
   def decode(row: Row, fieldName: Option[String] = None): Throwable Either A
 }
 
-object Decoder extends DecoderImplicits {
+object Decoder extends Decoders {
   def apply[A: Decoder]: Decoder[A] = implicitly
 }
 
-abstract class DecoderImplicits {
-  implicit val stringDecoder: Decoder[String] = {
-    case (row, Some(fieldName)) =>
-      row.get(fieldName, classOf[String]).asRight[Throwable]
-    case _ =>
-      new Exception("TODO").asLeft[String]
-  }
-
-  implicit val uuidDecoder: Decoder[UUID] = {
-    case (row, Some(fieldName)) =>
-      row.get(fieldName, classOf[UUID]).asRight[Throwable]
-    case _ =>
-      new Exception("TODO").asLeft[UUID]
-  }
-
+abstract class Decoders extends LowerPriorityDecoders {
   implicit val hnilDecoder: Decoder[HNil] =
     (_, _) => HNil.asRight[Throwable]
 
@@ -52,4 +40,24 @@ abstract class DecoderImplicits {
     D: Lazy[Decoder[H]]
   ): Decoder[A] =
     (row, _) => D.value.decode(row).map(G.from)
+
+  def decoder[A: ClassTag]: Decoder[A] = {
+    case (row, Some(fieldName)) =>
+      row.get(fieldName, classTag[A].runtimeClass).asInstanceOf[A].asRight[Throwable]
+    case (row, _) =>
+      new Exception(s"""Failed to extract field of type "${classTag[A].runtimeClass}" from given row: ${columnDefinitions(row).mkString(", ")}""").asLeft[A]
+  }
+
+  def columnDefinitions(row: Row): List[ColumnDefinition] =
+    row.getColumnDefinitions.iterator().asScala.toList
+}
+
+trait LowerPriorityDecoders {
+  this: Decoders =>
+
+  implicit val stringDecoder: Decoder[String] = decoder[String]
+
+  implicit val intDecoder: Decoder[Int] = decoder[Int]
+
+  implicit val uuidDecoder: Decoder[UUID] = decoder[UUID]
 }

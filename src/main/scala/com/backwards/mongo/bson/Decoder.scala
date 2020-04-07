@@ -1,25 +1,19 @@
 package com.backwards.mongo.bson
 
-import org.mongodb.scala.bson.BsonValue
 import cats.implicits._
-import shapeless.labelled.{FieldType, field}
 import shapeless._
+import shapeless.labelled.{FieldType, field}
+import org.mongodb.scala.bson.BsonValue
 
 abstract class Decoder[A] {
   def decode(bsonValue: BsonValue): Throwable Either A
 }
 
-object Decoder extends DecoderImplicits {
+object Decoder extends Decoders {
   def apply[A: Decoder]: Decoder[A] = implicitly
 }
 
-abstract class DecoderImplicits {
-  implicit val stringDecoder: Decoder[String] =
-    bsonValue => Either.catchNonFatal(bsonValue.asString.getValue)
-
-  implicit val intDecoder: Decoder[Int] =
-    bsonValue => Either.catchNonFatal(bsonValue.asNumber.intValue)
-
+abstract class Decoders extends LowerPriorityDecoders {
   implicit val hnilDecoder: Decoder[HNil] =
     _ => HNil.asRight[Throwable]
 
@@ -44,4 +38,14 @@ abstract class DecoderImplicits {
   ): Decoder[A] = { bsonValue =>
     D.value.decode(bsonValue).map(G.from)
   }
+}
+
+trait LowerPriorityDecoders {
+  this: Decoders =>
+
+  implicit val stringDecoder: Decoder[String] =
+    bsonValue => Either.catchNonFatal(bsonValue.asString.getValue)
+
+  implicit val intDecoder: Decoder[Int] =
+    bsonValue => Either.catchNonFatal(bsonValue.asNumber.intValue)
 }
