@@ -1,15 +1,19 @@
 package com.backwards.app.migration
 
 import java.util.UUID
-import cats.effect.IO
+import scala.jdk.CollectionConverters._
+import cats.effect.{ContextShift, IO}
 import fs2._
 import pureconfig.generic.auto._
 import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.result.InsertOneResult
 import org.reactivestreams.{Subscriber, Subscription}
+import com.datastax.oss.driver.api.core.CqlSession
 import com.mongodb.reactivestreams.client.{MongoClient, MongoCollection, MongoDatabase}
 import com.backwards.app.migration.TestMigration._
-import com.backwards.cassandra.User
+import com.backwards.cassandra.Cassandra._
+import com.backwards.cassandra.Decoder.ops._
+import com.backwards.cassandra.{CassandraConfig, User}
 import com.backwards.config.PureConfig.config
 import com.backwards.mongo.Mongo.mongoClient
 import com.backwards.mongo.MongoConfig
@@ -17,7 +21,8 @@ import com.backwards.mongo.bson.Encoder
 
 object TestMigrationApp extends MigrationApp(
   seed(mongoClient(config[MongoConfig]("mongo"))),
-  (user: User) => Stream.emit(println(s"===> Wow! Got user: $user"))
+  cassandraSession(config[CassandraConfig]("cassandra")),
+  process
 )
 
 object TestMigration {
@@ -46,5 +51,19 @@ object TestMigration {
         })
       }
     }
-}
 
+  def process(cs: ContextShift[IO])(cqlSession: CqlSession)(user: User): Stream[IO, Unit] = Stream.eval {
+    // TODO - Rethink
+    implicit val c = cs
+    implicit val csql = cqlSession
+
+    for {
+      _ <- execute(cql"insert into mykeyspace.user_by_id (id, email, firstname, lastname) values (?, ?, ?, ?)", user.id, user.email, user.firstName, user.lastName)
+      resultSet <- execute(cql"select * from mykeyspace.user_by_id where id = ?", user.id)
+    } yield {
+      resultSet.iterator().asScala.foreach { row =>
+        scribe.info(s"In Cassandra: ${row.as[User]}")
+      }
+    }
+  }
+}

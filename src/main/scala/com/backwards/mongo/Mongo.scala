@@ -7,14 +7,14 @@ import com.mongodb.reactivestreams.client.{MongoClient, MongoClients}
 
 object Mongo {
   def mongoClient(config: IO[MongoConfig]): Stream[IO, MongoClient] = {
-    val acquire = IO {
-      scribe info "Acquiring mongo client"
+    val acquire: IO[MongoClient] = IO {
+      scribe info "Acquiring Mongo client"
       MongoClients.create("mongodb://localhost")
     }
 
     val release: MongoClient => IO[Unit] =
       mongoClient => IO {
-        scribe info "Releasing mongo client"
+        scribe info "Releasing Mongo client"
         mongoClient.close()
       }
 
@@ -22,7 +22,7 @@ object Mongo {
   }
 }
 
-/* TODO
+/* TODO - Configuration
 
 val settings: MongoClientSettings = MongoClientSettings
   .builder()
