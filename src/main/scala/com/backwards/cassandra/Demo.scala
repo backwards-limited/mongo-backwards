@@ -7,6 +7,7 @@ import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success}
 import com.datastax.oss.driver.api.core.cql.{PreparedStatement, ResultSet, SimpleStatement}
 import com.datastax.oss.driver.api.core.{CqlIdentifier, CqlSession}
+import com.backwards.cassandra.Decoder.ops._
 
 object Demo extends App {
   import scala.jdk.FutureConverters._ // TODO
@@ -54,7 +55,7 @@ object Demo extends App {
 
     case Success(resultSet) =>
       resultSet.iterator().asScala.toList.foreach { row =>
-        println(Decoder[User].decode(row))
+        println(row.as[User])
       }
   }
 

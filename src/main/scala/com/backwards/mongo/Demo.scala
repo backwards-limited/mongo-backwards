@@ -1,11 +1,11 @@
 package com.backwards.mongo
 
 import cats.effect.{ExitCode, IO, IOApp}
+import fs2.interop.reactivestreams._
 import org.bson.Document
 import org.mongodb.scala.result.InsertOneResult
 import org.reactivestreams.{Subscriber, Subscription}
 import com.mongodb.reactivestreams.client.{MongoCollection, MongoDatabase}
-import fs2.interop.reactivestreams._
 
 /**
  * brew services start mongodb-community
