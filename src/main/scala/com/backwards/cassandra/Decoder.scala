@@ -26,13 +26,13 @@ abstract class Decoders extends LowerPriorityDecoders {
     TDecoder: Lazy[Decoder[T]]
   ): Decoder[FieldType[K, H] :: T] = {
     case (row, Some(fieldName)) =>
-      // TODO - Should this be an error?
+      // TODO - Should this be an error, or can we ignore this case?
       ???
     case (row, _) =>
       for {
-        h <- HDecoder.value.decode(row, Option(W.value.name))
-        t <- TDecoder.value.decode(row)
-      } yield field[K](h) :: t
+        head <- HDecoder.value.decode(row, Option(W.value.name))
+        tail <- TDecoder.value.decode(row)
+      } yield field[K](head) :: tail
   }
 
   implicit def genDecoder[A, H <: HList](

@@ -1,30 +1,15 @@
 package com.backwards.cassandra
 
-import java.net.InetSocketAddress
 import java.util.UUID
-import java.util.concurrent.{CompletionStage, TimeUnit}
+import java.util.concurrent.TimeUnit
 import scala.concurrent.Future
-import com.datastax.oss.driver.api.core.`type`.codec.TypeCodecs
-import com.datastax.oss.driver.api.core.cql.{BoundStatement, PreparedStatement, ResultSet, SimpleStatement}
-import com.datastax.oss.driver.api.core.session.Session
-import com.datastax.oss.driver.api.core.{CqlIdentifier, CqlSession}
-import com.datastax.oss.driver.internal.core.`type`.codec.UuidCodec
-import com.datastax.oss.driver.internal.core.cql.DefaultBoundStatement
-import com.datastax.oss.driver.shaded.guava.common.util.concurrent.ListenableFuture
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success}
+import com.datastax.oss.driver.api.core.cql.{PreparedStatement, ResultSet, SimpleStatement}
+import com.datastax.oss.driver.api.core.{CqlIdentifier, CqlSession}
 
 object Demo extends App {
-  /*val cluster = Cluster.builder().addContactPoint("127.0.0.1").build();
-  val session = cluster.connect()
-  val manager = new MappingManager(session)
-
-  val mapperClass = manager.mapper(classOf[TableObj], "test")
-  val objClass = mapperClass.get(new Integer(1))
-  println("Obj(1)='" + objClass + "'")*/
-
-  import scala.jdk.FutureConverters._
-
+  import scala.jdk.FutureConverters._ // TODO
 
   implicit class CqlStrings(val context: StringContext) extends AnyVal {
     def cql(args: Any*)(implicit session: CqlSession): Future[PreparedStatement] = {
@@ -33,7 +18,7 @@ object Demo extends App {
     }
   }
 
-  import scala.concurrent.{ ExecutionContext, Future, Promise }
+  import scala.concurrent.{ExecutionContext, Future} // TODO
 
   // TODO IO from Future
   def execute(statement: Future[PreparedStatement], params: Any*)(
@@ -53,8 +38,7 @@ object Demo extends App {
       //.addTypeCodecs(TypeCodecs.UUID)
       .build
 
-
-  import scala.concurrent.ExecutionContext.Implicits.global
+  import scala.concurrent.ExecutionContext.Implicits.global // TODO
 
   val user = User(UUID.randomUUID(), "Bob", "Boo", "email@gmail.com")
 
@@ -63,19 +47,17 @@ object Demo extends App {
     y <- execute(cql"select * from mykeyspace.user_by_id where id = ?", user.id)
   } yield y
 
-
-
+  // TODO
   resultSet.onComplete {
     case Failure(t) =>
       t.printStackTrace()
+
     case Success(resultSet) =>
       resultSet.iterator().asScala.toList.foreach { row =>
-        println(row.getString("firstname"))
-
         println(Decoder[User].decode(row))
       }
   }
 
-
+  // TODO
   TimeUnit.SECONDS.sleep(5)
 }
