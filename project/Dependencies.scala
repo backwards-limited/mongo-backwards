@@ -2,7 +2,7 @@ import sbt._
 
 object Dependencies {
   def apply(): Seq[ModuleID] = Seq(
-    scalatest, scalacheck, scalacheckShapeless, pureConfig,
+    scalatest, scalacheck, scalacheckShapeless, pureConfig, scribe,
     cats, mouse, simulacrum, refined, monocle, shapeless,
     fs2, mongo, datastax
   ).flatten
@@ -27,6 +27,10 @@ object Dependencies {
       "pureconfig-core", "pureconfig-generic", "pureconfig-cats", "pureconfig-cats-effect", "pureconfig-fs2"
     ).map(group %% _ % version withSources() withJavadoc())
   }
+
+  lazy val scribe: Seq[ModuleID] = Seq(
+    "com.outr" %% "scribe" % "2.7.12" withSources() withJavadoc()
+  )
 
   lazy val cats: Seq[ModuleID] = {
     val group = "org.typelevel"
