@@ -32,6 +32,7 @@ object Demo extends IOApp {
         scribe.info(s"${row.as[User]}")
       }
 
+      session.close()
       ExitCode.Success
     }
   }

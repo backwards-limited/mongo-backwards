@@ -2,19 +2,18 @@ package com.backwards.app.migration
 
 import java.util.UUID
 import cats.effect.IO
-import pureconfig.generic.auto._
-import com.mongodb.reactivestreams.client.{MongoClient, MongoCollection, MongoDatabase}
-import com.backwards.app.migration.TestMigration._
-import com.backwards.config.PureConfig.config
-import com.backwards.mongo.Mongo.mongoClient
-import com.backwards.mongo.MongoConfig
 import fs2._
+import pureconfig.generic.auto._
 import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.result.InsertOneResult
 import org.reactivestreams.{Subscriber, Subscription}
+import com.mongodb.reactivestreams.client.{MongoClient, MongoCollection, MongoDatabase}
+import com.backwards.app.migration.TestMigration._
 import com.backwards.cassandra.User
+import com.backwards.config.PureConfig.config
+import com.backwards.mongo.Mongo.mongoClient
+import com.backwards.mongo.MongoConfig
 import com.backwards.mongo.bson.Encoder
-import org.mongodb.scala._
 
 object TestMigrationApp extends MigrationApp(
   seed(mongoClient(config[MongoConfig]("mongo")))
@@ -34,15 +33,15 @@ object TestMigration {
 
         collection.insertOne(doc).subscribe(new Subscriber[InsertOneResult] {
           def onSubscribe(s: Subscription): Unit = {
-            println("onSubscribe")
+            scribe.info()
             s.request(1)
           }
 
-          def onNext(t: InsertOneResult): Unit = println("onNext")
+          def onNext(t: InsertOneResult): Unit = scribe.info()
 
-          def onError(t: Throwable): Unit = println("onError")
+          def onError(t: Throwable): Unit = scribe.info()
 
-          def onComplete(): Unit = println("onComplete")
+          def onComplete(): Unit = scribe.info()
         })
       }
     }
