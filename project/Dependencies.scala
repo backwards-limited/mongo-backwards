@@ -2,21 +2,22 @@ import sbt._
 
 object Dependencies {
   def apply(): Seq[ModuleID] = Seq(
-    scalatest, scalacheck, scalacheckShapeless, pureConfig, scribe,
+    scalatest, scalacheck, scalacheckShapeless,
+    pureConfig, scribe,
     cats, mouse, simulacrum, refined, monocle, shapeless,
     fs2, mongo, datastax
   ).flatten
   
   lazy val scalatest: Seq[ModuleID] = Seq(
-    "org.scalatest" %% "scalatest" % "3.1.0" % Test withSources() withJavadoc()
+    "org.scalatest" %% "scalatest" % "3.1.0" % "test,it" withSources() withJavadoc()
   )
 
   lazy val scalacheck: Seq[ModuleID] = Seq(
-    "org.scalacheck" %% "scalacheck" % "1.14.3" % Test withSources() withJavadoc()
+    "org.scalacheck" %% "scalacheck" % "1.14.3" % "test,it" withSources() withJavadoc()
   )
 
   lazy val scalacheckShapeless: Seq[ModuleID] = Seq(
-    "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5" withSources() withJavadoc()
+    "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5" % "test,it" withSources() withJavadoc()
   )
   
   lazy val pureConfig: Seq[ModuleID] = {

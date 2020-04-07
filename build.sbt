@@ -6,6 +6,7 @@ lazy val root = project("mongo-backwards", file("."))
 def project(id: String, base: File): Project =
   Project(id, base)
     .enablePlugins(JavaAppPackaging)
+    .configs(IntegrationTest)
     .settings(
       resolvers ++= Seq(
         Resolver.sonatypeRepo("releases"),
@@ -24,6 +25,7 @@ def project(id: String, base: File): Project =
       addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full),
       addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
       libraryDependencies ++= Dependencies(),
+      Defaults.itSettings,
       scalacOptions ++= Seq(
         "-encoding", "utf8",
         "-deprecation",

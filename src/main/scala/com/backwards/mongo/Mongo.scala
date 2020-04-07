@@ -11,7 +11,7 @@ object Mongo {
 
     val release: MongoClient => IO[Unit] =
       mongoClient => IO {
-        println("-- release baby ---")
+        scribe.info(s"Releasing mongo client")
         mongoClient.close() }
 
     Stream.bracket(acquire)(release)

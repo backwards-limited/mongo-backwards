@@ -3,20 +3,19 @@ package com.backwards.mongo
 import java.util.UUID
 import scala.concurrent.Future
 import cats.effect.{ExitCode, IO, IOApp}
+import fs2._
 import fs2.interop.reactivestreams._
 import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.result.InsertOneResult
 import org.reactivestreams.{Subscriber, Subscription}
-import com.datastax.oss.driver.api.core.{CqlIdentifier, CqlSession}
 import com.datastax.oss.driver.api.core.cql.{PreparedStatement, ResultSet, SimpleStatement}
+import com.datastax.oss.driver.api.core.{CqlIdentifier, CqlSession}
 import com.mongodb.reactivestreams.client.{MongoClient, MongoClients, MongoCollection, MongoDatabase}
 import com.backwards.cassandra.User
 import com.backwards.mongo.bson.Encoder
-import fs2._
 
-/**
- * brew services start mongodb-community
- */
+// TODO - DELETE
+@deprecated(message = "Trying stuff out", since = "7th April 2020")
 object Demo3 extends IOApp {
   def run(args: List[String]): IO[ExitCode] = {
 

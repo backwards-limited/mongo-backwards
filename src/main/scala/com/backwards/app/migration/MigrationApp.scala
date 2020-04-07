@@ -14,9 +14,8 @@ class MigrationApp(mongoClient: Stream[IO, MongoClient]) extends IOApp {
       mongoDatabase = mongoClient.getDatabase("mydatabase")
       mongoCollection = mongoDatabase.getCollection("mycollection", classOf[BsonDocument])
       (document, index) <- mongoCollection.find().toStream[IO].zipWithIndex
-    } yield {
-      println(s"===> $index: $document")
-    }
+    } yield
+      scribe.info(s"$index: ${document.toJson}")
 
     program.compile.drain.as(ExitCode.Success)
   }
