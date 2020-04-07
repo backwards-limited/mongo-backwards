@@ -12,6 +12,12 @@ abstract class Decoder[A] {
 
 object Decoder extends Decoders {
   def apply[A: Decoder]: Decoder[A] = implicitly
+
+  object ops {
+    implicit class DecoderOps(bsonValue: BsonValue) {
+      def as[A: Decoder]: Throwable Either A = Decoder[A].decode(bsonValue)
+    }
+  }
 }
 
 abstract class Decoders extends LowerPriorityDecoders {

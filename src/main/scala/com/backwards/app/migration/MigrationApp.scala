@@ -6,16 +6,22 @@ import com.mongodb.reactivestreams.client.MongoClient
 import fs2._
 import fs2.interop.reactivestreams._
 import cats.implicits._
+import com.backwards.mongo.bson.Decoder.ops._
+import com.backwards.cassandra.User
 
-class MigrationApp(mongoClient: Stream[IO, MongoClient]) extends IOApp {
+class MigrationApp(
+  mongoClient: Stream[IO, MongoClient],
+  callback: User => Stream[IO, Unit]
+) extends IOApp {
   def run(args: List[String]): IO[ExitCode] = {
     val program: Stream[IO, Unit] = for {
       mongoClient <- mongoClient
       mongoDatabase = mongoClient.getDatabase("mydatabase")
       mongoCollection = mongoDatabase.getCollection("mycollection", classOf[BsonDocument])
-      (document, index) <- mongoCollection.find().toStream[IO].zipWithIndex
+      (user, index) <- mongoCollection.find().toStream[IO].map(_.as[User]).zipWithIndex
+      _ <- user.fold(Stream.raiseError[IO], callback)
     } yield
-      scribe.info(s"$index: ${document.toJson}")
+      scribe.info(s"$index: $user")
 
     program.compile.drain.as(ExitCode.Success)
   }

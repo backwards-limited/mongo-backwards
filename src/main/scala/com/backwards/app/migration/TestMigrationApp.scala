@@ -16,7 +16,8 @@ import com.backwards.mongo.MongoConfig
 import com.backwards.mongo.bson.Encoder
 
 object TestMigrationApp extends MigrationApp(
-  seed(mongoClient(config[MongoConfig]("mongo")))
+  seed(mongoClient(config[MongoConfig]("mongo"))),
+  (user: User) => Stream.emit(println(s"===> Wow! Got user: $user"))
 )
 
 object TestMigration {
