@@ -1,5 +1,6 @@
 package com.backwards.mongo.bson
 
+import java.util.UUID
 import cats.implicits._
 import shapeless._
 import shapeless.labelled.{FieldType, field}
@@ -48,4 +49,7 @@ trait LowerPriorityDecoders {
 
   implicit val intDecoder: Decoder[Int] =
     bsonValue => Either.catchNonFatal(bsonValue.asNumber.intValue)
+
+  implicit val uuidDecoder: Decoder[UUID] =
+    bsonValue => Either.catchNonFatal(UUID.fromString(bsonValue.asString.getValue))
 }
