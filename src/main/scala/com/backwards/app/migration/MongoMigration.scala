@@ -1,6 +1,6 @@
 package com.backwards.app.migration
 
-import cats.effect.{ExitCode, IO, IOApp}
+import cats.effect.{ConcurrentEffect, IO}
 import cats.implicits._
 import fs2._
 import fs2.interop.reactivestreams._
@@ -9,13 +9,9 @@ import com.mongodb.reactivestreams.client.MongoClient
 import com.backwards.cassandra.User
 import com.backwards.mongo.bson.Decoder.ops._
 
-class MongoMigrationApp(
-  mongoClient: Stream[IO, MongoClient],
-  callback: Stream[IO, User => Stream[IO, Unit]] // TODO - Rethink this
-) extends IOApp {
-  def run(args: List[String]): IO[ExitCode] = {
-    val program: Stream[IO, Unit] = for {
-      callback <- callback
+object MongoMigration {
+  def run(mongoClient: Stream[IO, MongoClient], callback: User => Stream[IO, Unit])(implicit c: ConcurrentEffect[IO]): Stream[IO, Unit] =
+    for {
       mongoClient <- mongoClient
       mongoDatabase = mongoClient.getDatabase("mydatabase")
       mongoCollection = mongoDatabase.getCollection("mycollection", classOf[BsonDocument])
@@ -23,7 +19,4 @@ class MongoMigrationApp(
       _ <- user.fold(Stream.raiseError[IO], callback)
     } yield
       scribe.info(s"$index: $user")
-
-    program.compile.drain.as(ExitCode.Success)
-  }
 }

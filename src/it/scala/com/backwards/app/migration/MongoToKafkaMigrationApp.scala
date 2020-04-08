@@ -1,21 +1,14 @@
 package com.backwards.app.migration
 
-import java.util.UUID
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits._
 import fs2._
-import fs2.interop.reactivestreams._
 import fs2.kafka._
 import pureconfig.generic.auto._
-import org.mongodb.scala.bson.BsonDocument
-import org.mongodb.scala.result.InsertOneResult
-import com.mongodb.reactivestreams.client.{MongoClient, MongoCollection, MongoDatabase}
 import com.backwards.cassandra.User
 import com.backwards.config.PureConfig.config
 import com.backwards.mongo.Mongo.mongoClient
-import com.backwards.mongo.bson.Decoder.ops._
-import com.backwards.mongo.bson.Encoder.ops._
-import com.backwards.mongo.{MongoConfig, NoOpsSubscriber}
+import com.backwards.mongo.{MongoConfig, MongoFixture}
 
 /**
  * Check Kafka i.e. have events been published:
@@ -24,34 +17,18 @@ import com.backwards.mongo.{MongoConfig, NoOpsSubscriber}
  *
  * kafkacat -C -b localhost:9092 -t users -o beginning
  */
-object MongoToKafkaMigrationApp extends IOApp {
+object MongoToKafkaMigrationApp extends IOApp with MongoFixture {
   def run(args: List[String]): IO[ExitCode] = {
     val program: Stream[IO, Unit] =
-      for {
-        kafkaProducer <- kafkaProducer
-        mongoClient <- seed(mongoClient(config[MongoConfig]("mongo")))
-        mongoDatabase = mongoClient.getDatabase("mydatabase")
-        mongoCollection = mongoDatabase.getCollection("mycollection", classOf[BsonDocument])
-        (user, index) <- mongoCollection.find().toStream[IO].map(_.as[User]).zipWithIndex
-        _ <- user.fold(Stream.raiseError[IO], process(kafkaProducer))
-      } yield
-        scribe.info(s"$index: $user")
+      kafkaProducer flatMap { kafkaProducer =>
+        MongoMigration.run(
+          seed(mongoClient(config[MongoConfig]("mongo"))),
+          process(kafkaProducer)
+        )
+      }
 
     program.compile.drain.as(ExitCode.Success)
   }
-
-  def seed(mongoClient: Stream[IO, MongoClient]): Stream[IO, MongoClient] =
-    mongoClient.evalTap { mongoClient =>
-      IO {
-        val database: MongoDatabase = mongoClient.getDatabase("mydatabase")
-
-        val collection: MongoCollection[BsonDocument] = database.getCollection("mycollection", classOf[BsonDocument])
-
-        val user = User(UUID.randomUUID(), "Bob", "Boo", "bob@gmail.com")
-
-        collection.insertOne(user.asDocument).subscribe(NoOpsSubscriber[InsertOneResult])
-      }
-    }
 
   def kafkaProducer: Stream[IO, KafkaProducer[IO, String, String]] = { // TODO - Parameterise key/value as maybe UUID -> User
     // TODO - Configure
