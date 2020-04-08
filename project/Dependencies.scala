@@ -5,7 +5,7 @@ object Dependencies {
     scalatest, scalacheck, scalacheckShapeless,
     pureConfig, scribe,
     cats, mouse, simulacrum, refined, monocle, shapeless,
-    fs2, mongo, datastax
+    fs2, fs2Kafka, mongo, datastax
   ).flatten
   
   lazy val scalatest: Seq[ModuleID] = Seq(
@@ -84,6 +84,10 @@ object Dependencies {
       "fs2-core", "fs2-io", "fs2-reactive-streams"
     ).map(group %% _ % version withSources() withJavadoc())
   }
+
+  lazy val fs2Kafka: Seq[ModuleID] = Seq(
+    "com.github.fd4s" %% "fs2-kafka" % "1.0.0"
+  )
 
   lazy val mongo: Seq[ModuleID] = Seq(
     "org.mongodb.scala" %% "mongo-scala-driver" % "4.0.1" withSources() withJavadoc()
