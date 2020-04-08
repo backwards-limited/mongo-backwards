@@ -10,22 +10,21 @@ import org.mongodb.scala.result.InsertOneResult
 import org.reactivestreams.{Subscriber, Subscription}
 import com.datastax.oss.driver.api.core.CqlSession
 import com.mongodb.reactivestreams.client.{MongoClient, MongoCollection, MongoDatabase}
-import com.backwards.app.migration.TestMigration._
+import com.backwards.app.migration.MongoToCassandraMigration._
 import com.backwards.cassandra.Cassandra._
 import com.backwards.cassandra.Decoder.ops._
 import com.backwards.cassandra.{CassandraConfig, User}
 import com.backwards.config.PureConfig.config
 import com.backwards.mongo.Mongo.mongoClient
 import com.backwards.mongo.MongoConfig
-import com.backwards.mongo.bson.Encoder
+import com.backwards.mongo.bson.Encoder.ops._
 
-object TestMigrationApp extends MigrationApp(
+object MongoToCassandraMigrationApp extends MongoMigrationApp(
   seed(mongoClient(config[MongoConfig]("mongo"))),
-  cassandraSession(config[CassandraConfig]("cassandra")),
-  process
+  cassandraSession(config[CassandraConfig]("cassandra")).map(process)
 )
 
-object TestMigration {
+object MongoToCassandraMigration {
   def seed(mongoClient: Stream[IO, MongoClient]): Stream[IO, MongoClient] =
     mongoClient.evalTap { mongoClient =>
       IO {
@@ -35,9 +34,7 @@ object TestMigration {
 
         val user = User(UUID.randomUUID(), "Bob", "Boo", "bob@gmail.com")
 
-        val doc = Encoder[User].encode(user).asDocument()
-
-        collection.insertOne(doc).subscribe(new Subscriber[InsertOneResult] {
+        collection.insertOne(user.asDocument).subscribe(new Subscriber[InsertOneResult] {
           def onSubscribe(s: Subscription): Unit = {
             scribe.info()
             s.request(1)
@@ -52,17 +49,19 @@ object TestMigration {
       }
     }
 
-  def process(cs: ContextShift[IO])(cqlSession: CqlSession)(user: User): Stream[IO, Unit] = Stream.eval {
+  def process(cqlSession: CqlSession): User => Stream[IO, Unit] = {
     // TODO - Rethink
-    implicit val c = cs
-    implicit val csql = cqlSession
+    implicit val cs: ContextShift[IO] = IO.contextShift(scala.concurrent.ExecutionContext.global)
+    implicit val csql: CqlSession = cqlSession
 
-    for {
-      _ <- execute(cql"insert into mykeyspace.user_by_id (id, email, firstname, lastname) values (?, ?, ?, ?)", user.id, user.email, user.firstName, user.lastName)
-      resultSet <- execute(cql"select * from mykeyspace.user_by_id where id = ?", user.id)
-    } yield {
-      resultSet.iterator().asScala.foreach { row =>
-        scribe.info(s"In Cassandra: ${row.as[User]}")
+    user => Stream.eval {
+      for {
+        _ <- execute(cql"insert into mykeyspace.user_by_id (id, email, firstname, lastname) values (?, ?, ?, ?)", user.id, user.email, user.firstName, user.lastName)
+        resultSet <- execute(cql"select * from mykeyspace.user_by_id where id = ?", user.id)
+      } yield {
+        resultSet.iterator().asScala.foreach { row =>
+          scribe.info(s"In Cassandra: ${row.as[User]}")
+        }
       }
     }
   }

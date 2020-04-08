@@ -11,6 +11,12 @@ abstract class Encoder[A] {
 
 object Encoder extends Encoders {
   def apply[A: Encoder]: Encoder[A] = implicitly
+
+  object ops {
+    implicit class EncoderOps[A: Encoder](a: A) {
+      def asDocument: BsonDocument = Encoder[A].encode(a).asDocument()
+    }
+  }
 }
 
 abstract class Encoders extends LowerLevelEncoders {
