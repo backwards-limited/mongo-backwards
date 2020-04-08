@@ -32,7 +32,8 @@ object MongoToKafkaMigrationApp extends IOApp with MongoFixture {
 
   def process(kafkaProducer: KafkaProducer[IO, String, String]): User => Stream[IO, Unit] =
     user => Stream.eval {
-      val record = ProducerRecord("users", user.id.toString, user.toString) // TODO
+      // TODO - Serialization
+      val record = ProducerRecord("users", user.id.toString, user.toString)
 
       kafkaProducer.produce(ProducerRecords.one(record)).flatten.map { producerResult =>
         scribe.info(producerResult.toString)
