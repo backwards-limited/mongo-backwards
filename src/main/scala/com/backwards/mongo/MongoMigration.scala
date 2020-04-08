@@ -9,7 +9,7 @@ import com.mongodb.reactivestreams.client.MongoClient
 import com.backwards.mongo.bson.Decoder.ops._
 
 object MongoMigration {
-  def run(mongoClient: Stream[IO, MongoClient], callback: User => Stream[IO, Unit])(implicit c: ConcurrentEffect[IO]): Stream[IO, Unit] =
+  def run(mongoClient: Stream[IO, MongoClient], callback: User => Stream[IO, Unit])(implicit C: ConcurrentEffect[IO]): Stream[IO, Unit] =
     for {
       mongoClient <- mongoClient
       mongoDatabase = mongoClient.getDatabase("mydatabase")

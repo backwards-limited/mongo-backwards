@@ -6,6 +6,7 @@ import fs2._
 import fs2.kafka._
 import pureconfig.generic.auto._
 import com.backwards.config.PureConfig.config
+import com.backwards.kafka.Kafka.kafkaProducer
 import com.backwards.mongo.Mongo.mongoClient
 import com.backwards.mongo.{MongoConfig, MongoFixture, MongoMigration, User}
 
@@ -19,7 +20,7 @@ import com.backwards.mongo.{MongoConfig, MongoFixture, MongoMigration, User}
 object MongoToKafkaMigrationApp extends IOApp with MongoFixture {
   def run(args: List[String]): IO[ExitCode] = {
     val program: Stream[IO, Unit] =
-      kafkaProducer flatMap { kafkaProducer =>
+      kafkaProducer(config[KafkaConfig]("kafka")) flatMap { kafkaProducer =>
         MongoMigration.run(
           seed(mongoClient(config[MongoConfig]("mongo"))),
           process(kafkaProducer)
@@ -27,21 +28,6 @@ object MongoToKafkaMigrationApp extends IOApp with MongoFixture {
       }
 
     program.compile.drain.as(ExitCode.Success)
-  }
-
-  def kafkaProducer: Stream[IO, KafkaProducer[IO, String, String]] = { // TODO - Parameterise key/value as maybe UUID -> User
-    // TODO - Configure
-    val producerSettings =
-      ProducerSettings[IO, String, String]
-        .withBootstrapServers("localhost:9092")
-
-    producerStream[IO]
-      .using(producerSettings)
-      .evalTap(_ => IO(scribe info "Acquiring Kafka producer"))
-      .onComplete {
-        scribe info "Releasing Kafka producer"
-        Stream.empty
-      }
   }
 
   def process(kafkaProducer: KafkaProducer[IO, String, String]): User => Stream[IO, Unit] =
