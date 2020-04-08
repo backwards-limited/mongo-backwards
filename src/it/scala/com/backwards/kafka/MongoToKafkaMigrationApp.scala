@@ -1,14 +1,13 @@
-package com.backwards.app.migration
+package com.backwards.kafka
 
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits._
 import fs2._
 import fs2.kafka._
 import pureconfig.generic.auto._
-import com.backwards.cassandra.User
 import com.backwards.config.PureConfig.config
 import com.backwards.mongo.Mongo.mongoClient
-import com.backwards.mongo.{MongoConfig, MongoFixture}
+import com.backwards.mongo.{MongoConfig, MongoFixture, MongoMigration, User}
 
 /**
  * Check Kafka i.e. have events been published:

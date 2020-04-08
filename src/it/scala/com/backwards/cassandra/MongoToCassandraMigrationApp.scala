@@ -1,4 +1,4 @@
-package com.backwards.app.migration
+package com.backwards.cassandra
 
 import scala.jdk.CollectionConverters._
 import cats.effect.{ExitCode, IO, IOApp}
@@ -6,12 +6,11 @@ import cats.implicits._
 import fs2._
 import pureconfig.generic.auto._
 import com.datastax.oss.driver.api.core.CqlSession
-import com.backwards.cassandra.Cassandra._
+import com.backwards.cassandra.Cassandra.{cqlSession, _}
 import com.backwards.cassandra.Decoder.ops._
-import com.backwards.cassandra.{CassandraConfig, User}
 import com.backwards.config.PureConfig.config
 import com.backwards.mongo.Mongo.mongoClient
-import com.backwards.mongo.{MongoConfig, MongoFixture}
+import com.backwards.mongo.{MongoConfig, MongoFixture, MongoMigration, User}
 
 object MongoToCassandraMigrationApp extends IOApp with MongoFixture {
   def run(args: List[String]): IO[ExitCode] = {

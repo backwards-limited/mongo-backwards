@@ -1,4 +1,4 @@
-package com.backwards.app.migration
+package com.backwards.mongo
 
 import cats.effect.{ConcurrentEffect, IO}
 import cats.implicits._
@@ -6,7 +6,6 @@ import fs2._
 import fs2.interop.reactivestreams._
 import org.mongodb.scala.bson.BsonDocument
 import com.mongodb.reactivestreams.client.MongoClient
-import com.backwards.cassandra.User
 import com.backwards.mongo.bson.Decoder.ops._
 
 object MongoMigration {

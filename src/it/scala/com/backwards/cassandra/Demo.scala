@@ -6,6 +6,7 @@ import cats.effect.{ExitCode, IO, IOApp}
 import com.datastax.oss.driver.api.core.{CqlIdentifier, CqlSession}
 import com.backwards.cassandra.Cassandra._
 import com.backwards.cassandra.Decoder.ops._
+import com.backwards.mongo.User
 
 /**
  * cqlsh localhost -u cassandra -p cassandra

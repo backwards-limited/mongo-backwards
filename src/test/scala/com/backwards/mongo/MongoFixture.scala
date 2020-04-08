@@ -7,7 +7,6 @@ import fs2.Stream
 import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.result.InsertOneResult
 import com.mongodb.reactivestreams.client.{MongoClient, MongoCollection, MongoDatabase}
-import com.backwards.cassandra.User
 import com.backwards.mongo.bson.Encoder.ops._
 
 object MongoFixture extends MongoFixture

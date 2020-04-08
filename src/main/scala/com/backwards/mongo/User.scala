@@ -1,4 +1,4 @@
-package com.backwards.cassandra
+package com.backwards.mongo
 
 import java.util.UUID
 
