@@ -20,7 +20,7 @@ import com.backwards.mongo.{MongoConfig, MongoFixture}
 object MongoToKafkaMigrationApp extends IOApp with MongoFixture {
   def run(args: List[String]): IO[ExitCode] = {
     val program: Stream[IO, Unit] =
-      kafkaProducer.flatMap { kafkaProducer =>
+      kafkaProducer flatMap { kafkaProducer =>
         MongoMigration.run(
           seed(mongoClient(config[MongoConfig]("mongo"))),
           process(kafkaProducer)

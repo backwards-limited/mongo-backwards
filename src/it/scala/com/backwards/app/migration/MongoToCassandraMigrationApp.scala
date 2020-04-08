@@ -16,7 +16,7 @@ import com.backwards.mongo.{MongoConfig, MongoFixture}
 object MongoToCassandraMigrationApp extends IOApp with MongoFixture {
   def run(args: List[String]): IO[ExitCode] = {
     val program: Stream[IO, Unit] =
-      cqlSession(config[CassandraConfig]("cassandra")).flatMap { cqlSession =>
+      cqlSession(config[CassandraConfig]("cassandra")) flatMap { cqlSession =>
         MongoMigration.run(
           seed(mongoClient(config[MongoConfig]("mongo"))),
           process(cqlSession)
