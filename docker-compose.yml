@@ -15,6 +15,7 @@ services:
   kafka:
     image: confluentinc/cp-kafka:5.2.1
     hostname: kafka
+    container_name: kafka
     ports:
       - 9092:9092
     environment:

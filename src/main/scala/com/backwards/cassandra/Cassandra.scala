@@ -18,7 +18,7 @@ object Cassandra {
     }
   }
 
-  def cassandraSession(config: IO[CassandraConfig]): Stream[IO, CqlSession] = {
+  def cqlSession(config: IO[CassandraConfig]): Stream[IO, CqlSession] = {
     val acquire = IO {
       scribe info "Acquiring Cassandra session"
 
