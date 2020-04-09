@@ -4,7 +4,7 @@ object Dependencies {
   def apply(): Seq[ModuleID] = Seq(
     scalatest, scalamock, scalacheck, scalacheckShapeless,
     pureConfig, scribe,
-    cats, mouse, simulacrum, refined, monocle, shapeless,
+    cats, mouse, simulacrum, refined, monocle, shapeless, circe,
     fs2, fs2Kafka, mongo, datastax
   ).flatten
   
@@ -77,8 +77,17 @@ object Dependencies {
   }
 
   lazy val shapeless: Seq[ModuleID] = Seq(
-    "com.chuusai" %% "shapeless" % "2.3.3" force() withSources() withJavadoc()
+    "com.chuusai" %% "shapeless" % "2.3.3" withSources() withJavadoc()
   )
+
+  lazy val circe: Seq[ModuleID] = {
+    val group = "io.circe"
+    val version = "0.13.0"
+
+    Seq(
+      "circe-core", "circe-generic", "circe-generic-extras", "circe-parser", "circe-literal", "circe-shapes"
+    ).map(group %% _ % version withSources() withJavadoc())
+  }
 
   lazy val fs2: Seq[ModuleID] = {
     val group = "co.fs2"
