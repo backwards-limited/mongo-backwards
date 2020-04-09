@@ -59,7 +59,7 @@ services:
       /bin/bash -c "
         cd /cassandra;
         ./schema.sh;
-        sleep 1h
+        sleep infinity
       "
 
   it-test:
