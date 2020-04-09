@@ -1,4 +1,11 @@
+import scala.sys.process._
 import sbt._
+
+lazy val IntegrationTest = config("it") extend Test
+
+lazy val itTest = taskKey[Int]("Execute integration tests in Docker")
+
+lazy val itInspect = taskKey[Int]("Inspect integration tests in Docker without container shutdown")
 
 lazy val root = project("mongo-backwards", file("."))
   .settings(description := "Scala Mongo by Backwards")
@@ -26,6 +33,8 @@ def project(id: String, base: File): Project =
       addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
       libraryDependencies ++= Dependencies(),
       Defaults.itSettings,
+      itTest := "docker-compose up --abort-on-container-exit --exit-code-from it-test".#&&("docker-compose down").#||("docker-compose down").!,
+      itInspect := "docker-compose up".!,
       scalacOptions ++= Seq(
         "-encoding", "utf8",
         "-deprecation",

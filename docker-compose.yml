@@ -55,9 +55,28 @@ services:
       - cassandra
     volumes:
       - ./docker/cassandra:/cassandra
-    command:
-      - /bin/sh
-      - -c
-      - |
-        cd /cassandra
-        ./schema.sh
+    command: >
+      /bin/bash -c "
+        cd /cassandra;
+        ./schema.sh;
+        sleep 1h
+      "
+
+  it-test:
+    image: hseeberger/scala-sbt:11.0.6_1.3.9_2.13.1
+    hostname: it-test
+    container_name: it-test
+    depends_on:
+      - zookeeper
+      - kafka
+      - mongo
+      - cassandra
+      - cassandra-client
+    volumes:
+      - ./:/app
+    working_dir: /app
+    command: >
+      /bin/bash -c "
+        sleep 20;
+        sbt it:test
+      "
