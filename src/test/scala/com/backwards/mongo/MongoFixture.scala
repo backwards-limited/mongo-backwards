@@ -21,6 +21,7 @@ trait MongoFixture extends UserFixture {
   def seed(mongoClient: Stream[IO, MongoClient]): Stream[IO, MongoClient] =
     mongoClient evalTap { implicit mongoClient =>
       for {
+        // TODO - MongoClient should already be configured as per Mongo.mongoClient
         implicit0(database: MongoDatabase) <- database("mydatabase")
         implicit0(collection: MongoCollection[BsonDocument]) <- collection("mycollection", truncate = true)
         updates <- Gen.listOfN(10, genUser).sample.fold(IO.raiseError[Int](new Exception("No User data to seed")))(seedUsers)
