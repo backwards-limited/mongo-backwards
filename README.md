@@ -35,3 +35,5 @@ resolvers ++= Seq(
 - [SBT](docs/sbt.md)
 
 - [Release](docs/release.md)
+
+- [Execute](docs/execute.md)
