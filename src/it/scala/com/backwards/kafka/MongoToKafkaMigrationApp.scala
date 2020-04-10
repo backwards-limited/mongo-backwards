@@ -1,12 +1,16 @@
 package com.backwards.kafka
 
+import java.util.UUID
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits._
+import io.circe.generic.auto._
 import fs2._
 import fs2.kafka._
 import pureconfig.generic.auto._
+import com.mongodb.reactivestreams.client.MongoClient
 import com.backwards.config.PureConfig.config
 import com.backwards.kafka.Kafka.kafkaProducer
+import com.backwards.kafka.circe.Serializer._
 import com.backwards.mongo.Mongo.mongoClient
 import com.backwards.mongo.{MongoConfig, MongoFixture, MongoMigration, User}
 
@@ -19,20 +23,19 @@ import com.backwards.mongo.{MongoConfig, MongoFixture, MongoMigration, User}
  */
 object MongoToKafkaMigrationApp extends IOApp with MongoFixture {
   def run(args: List[String]): IO[ExitCode] =
-    program.compile.drain.as(ExitCode.Success)
+    program(
+      seed(mongoClient(config[MongoConfig]("mongo"))),
+      kafkaProducer[UUID, User](config[KafkaConfig]("kafka"))
+    ).compile.drain.as(ExitCode.Success)
 
-  def program: Stream[IO, ProducerResult[String, String, Unit]] =
-    kafkaProducer(config[KafkaConfig]("kafka")) flatMap { kafkaProducer =>
-      MongoMigration.run(
-        seed(mongoClient(config[MongoConfig]("mongo"))),
-        process(kafkaProducer)
-      )
+  def program(mongoClient: Stream[IO, MongoClient], kafkaProducer: Stream[IO, KafkaProducer[IO, UUID, User]]): Stream[IO, ProducerResult[UUID, User, Unit]] =
+    kafkaProducer flatMap { kafka =>
+      MongoMigration.run(mongoClient, process(kafka))
     }
 
-  def process(kafkaProducer: KafkaProducer[IO, String, String]): User => Stream[IO, ProducerResult[String, String, Unit]] =
+  def process(kafkaProducer: KafkaProducer[IO, UUID, User]): User => Stream[IO, ProducerResult[UUID, User, Unit]] =
     user => Stream.eval {
-      // TODO - Serialization
-      val record = ProducerRecord("users", user.id.toString, user.toString)
+      val record = ProducerRecord("users", user.id, user)
 
       kafkaProducer.produce(ProducerRecords.one(record)).flatten.map { producerResult =>
         scribe.info(producerResult.toString)

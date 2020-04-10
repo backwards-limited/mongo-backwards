@@ -31,11 +31,11 @@ To configure our JVM environment:
 ```bash
 $ jenv versions
     system
-  * 11.0.1 (set by /Users/davidainslie/workspace/backwards/scala-backwards/.java-version)
+  * 14 (set by /Users/davidainslie/workspace/backwards/mongo-backwards/.java-version)
 ```
 
-From the available versions, let's set the latest:
+From the available versions (if not yet set) set the latest:
 
 ```bash
-$ jenv local 11.0.1
+$ jenv local 14
 ```

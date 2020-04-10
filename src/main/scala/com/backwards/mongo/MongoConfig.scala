@@ -1,3 +1,4 @@
 package com.backwards.mongo
 
-final case class MongoConfig()
+// TODO - WIP
+final case class MongoConfig(host: String)

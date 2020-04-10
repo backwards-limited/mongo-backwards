@@ -1,5 +1,6 @@
 package com.backwards.cassandra
 
+import java.net.InetSocketAddress
 import scala.jdk.FutureConverters._
 import cats.effect.{ContextShift, IO}
 import cats.implicits._
@@ -9,27 +10,25 @@ import com.datastax.oss.driver.api.core.{CqlIdentifier, CqlSession}
 
 object Cassandra {
   implicit class CqlStrings(val context: StringContext) extends AnyVal {
-    def cql(args: Any*)(implicit session: CqlSession, cs: ContextShift[IO]): IO[PreparedStatement] = {
+    def cql(args: Any*)(implicit cqlSession: CqlSession, cs: ContextShift[IO]): IO[PreparedStatement] = {
       val statement = SimpleStatement.newInstance(context.raw(args: _*))
 
       IO fromFuture IO {
-        session.prepareAsync(statement).asScala
+        cqlSession.prepareAsync(statement).asScala
       }
     }
   }
 
   def cqlSession(config: IO[CassandraConfig]): Stream[IO, CqlSession] = {
-    val acquire = IO {
-      scribe info "Acquiring Cassandra session"
+    val acquire = config map { c =>
+      scribe info s"Acquiring Cassandra session: $c"
 
-      // TODO - Configuration
       CqlSession
         .builder
-        //.addContactPoint(new InetSocketAddress("localhost", 9042))
-        //.withLocalDatacenter("DC1")
-        .withAuthCredentials("cassandra", "cassandra")
-        .withKeyspace(CqlIdentifier.fromCql("mykeyspace"))
-        //.addTypeCodecs(TypeCodecs.UUID)
+        .addContactPoint(new InetSocketAddress(c.host.value, c.port.value))
+        .withLocalDatacenter(c.dataCentre.value)
+        .withAuthCredentials(c.credentials.userName.value, c.credentials.password.value)
+        .withKeyspace(CqlIdentifier.fromCql(c.keyspace.value))
         .build
     }
 
