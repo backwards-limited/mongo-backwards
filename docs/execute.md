@@ -52,5 +52,5 @@ $ sbt itInspect
 $ docker-compose down
 ```
 
-## Demo
+## Examples
 

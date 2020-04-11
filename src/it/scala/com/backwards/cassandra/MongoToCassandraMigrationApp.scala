@@ -13,7 +13,7 @@ import com.backwards.mongo._
 object MongoToCassandraMigrationApp extends IOApp with MongoFixture {
   def run(args: List[String]): IO[ExitCode] =
     program(
-      seedUsers(mongo(config[MongoConfig]("mongo"))),
+      seedUsers(init(mongo(config[MongoConfig]("mongo")))),
       cassandra(config[CassandraConfig]("cassandra"))
     ).compile.drain.as(ExitCode.Success)
 

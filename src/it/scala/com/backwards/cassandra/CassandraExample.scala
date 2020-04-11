@@ -14,7 +14,7 @@ import com.backwards.mongo._
 /**
  * cqlsh localhost -u cassandra -p cassandra
  */
-object CassandraDemo extends IOApp {
+object CassandraExample extends IOApp {
   def run(args: List[String]): IO[ExitCode] = {
     val user = User(UUID.randomUUID(), "Bob", "Boo", "email@gmail.com")
 

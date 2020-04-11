@@ -23,7 +23,7 @@ import com.backwards.mongo._
 object MongoToKafkaMigrationApp extends IOApp with MongoFixture {
   def run(args: List[String]): IO[ExitCode] =
     program(
-      seedUsers(mongo(config[MongoConfig]("mongo"))),
+      seedUsers(init(mongo(config[MongoConfig]("mongo")))),
       kafkaProducer[UUID, User](config[KafkaConfig]("kafka"))
     ).compile.drain.as(ExitCode.Success)
 

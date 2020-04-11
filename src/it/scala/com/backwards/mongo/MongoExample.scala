@@ -12,7 +12,7 @@ import com.mongodb.reactivestreams.client.{MongoClients, MongoCollection, MongoD
  * However, anything can be used such as Homebrew e.g.
  * brew services start mongodb-community
  */
-object MongoDemo extends IOApp {
+object MongoExample extends IOApp {
   def run(args: List[String]): IO[ExitCode] = {
     val mongoClient = MongoClients.create("mongodb://localhost")
 
@@ -27,26 +27,26 @@ object MongoDemo extends IOApp {
 
     collection.insertOne(document).subscribe(new Subscriber[InsertOneResult] {
       def onSubscribe(s: Subscription): Unit = {
-        scribe.info(s"Persisting document: ${document.toJson}")
+        scribe info s"Persisting document: ${document.toJson}"
         s.request(1)
       }
 
-      def onNext(t: InsertOneResult): Unit = println("onNext")
+      def onNext(t: InsertOneResult): Unit = scribe info "onNext"
 
-      def onError(t: Throwable): Unit = println("onError")
+      def onError(t: Throwable): Unit = scribe info "onError"
 
-      def onComplete(): Unit = println("onComplete")
+      def onComplete(): Unit = scribe info "onComplete"
     })
 
     val allDocuments = for {
       document <- collection.find().toStream[IO]
     } yield {
-      scribe.info(s"Got document: ${document.toJson}")
+      scribe info s"Got document: ${document.toJson}"
       document
     }
 
     allDocuments.compile.toList.map { documents =>
-      scribe.info(s"Got all documents:\n${documents.map(_.toJson).mkString("\n")}")
+      scribe info s"Got all documents:\n${documents.map(_.toJson).mkString("\n")}"
       ExitCode(0)
     }
   }
