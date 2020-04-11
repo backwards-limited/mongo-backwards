@@ -12,7 +12,7 @@ import com.mongodb.reactivestreams.client.{MongoClients, MongoCollection, MongoD
  * However, anything can be used such as Homebrew e.g.
  * brew services start mongodb-community
  */
-object Demo extends IOApp {
+object MongoDemo extends IOApp {
   def run(args: List[String]): IO[ExitCode] = {
     val mongoClient = MongoClients.create("mongodb://localhost")
 

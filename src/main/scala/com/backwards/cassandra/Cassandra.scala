@@ -8,41 +8,49 @@ import fs2._
 import com.datastax.oss.driver.api.core.cql.{PreparedStatement, ResultSet, SimpleStatement}
 import com.datastax.oss.driver.api.core.{CqlIdentifier, CqlSession}
 
+final case class Cassandra private(cqlSession: CqlSession, config: CassandraConfig) {
+  def keyspace(name: String = config.keyspace.value): String =
+    cqlSession.getKeyspace.orElse(CqlIdentifier.fromCql(name)).asInternal()
+}
+
 object Cassandra {
   implicit class CqlStrings(val context: StringContext) extends AnyVal {
-    def cql(args: Any*)(implicit cqlSession: CqlSession, cs: ContextShift[IO]): IO[PreparedStatement] = {
+    def cql(args: Any*)(implicit cassandra: Cassandra, cs: ContextShift[IO]): IO[PreparedStatement] = {
       val statement = SimpleStatement.newInstance(context.raw(args: _*))
 
       IO fromFuture IO {
-        cqlSession.prepareAsync(statement).asScala
+        cassandra.cqlSession.prepareAsync(statement).asScala
       }
     }
   }
 
-  def cqlSession(config: IO[CassandraConfig]): Stream[IO, CqlSession] = {
-    val acquire = config map { c =>
-      scribe info s"Acquiring Cassandra session: $c"
+  def cassandra(config: IO[CassandraConfig]): Stream[IO, Cassandra] = {
+    val acquire: IO[Cassandra] = config map { config =>
+      scribe info s"Acquiring Cassandra session: $config"
 
-      CqlSession
-        .builder
-        .addContactPoint(new InetSocketAddress(c.host.value, c.port.value))
-        .withLocalDatacenter(c.dataCentre.value)
-        .withAuthCredentials(c.credentials.userName.value, c.credentials.password.value)
-        .withKeyspace(CqlIdentifier.fromCql(c.keyspace.value))
-        .build
+      Cassandra(cqlSession(config), config)
     }
 
-    val release: CqlSession => IO[Unit] =
-      cqlSession => IO {
+    val release: Cassandra => IO[Unit] =
+      cassandra => IO {
         scribe info "Releasing Cassandra session"
-        cqlSession.close()
+        cassandra.cqlSession.close()
       }
 
     Stream.bracket(acquire)(release)
   }
 
-  def execute(statement: IO[PreparedStatement], params: Any*)(implicit session: CqlSession): IO[ResultSet] =
+  def cqlSession(config: CassandraConfig): CqlSession =
+    CqlSession
+      .builder
+      .addContactPoint(new InetSocketAddress(config.host.value, config.port.value))
+      .withLocalDatacenter(config.dataCentre.value)
+      .withAuthCredentials(config.credentials.userName.value, config.credentials.password.value)
+      .withKeyspace(CqlIdentifier.fromCql(config.keyspace.value))
+      .build
+
+  def execute(statement: IO[PreparedStatement], params: Any*)(implicit cassandra: Cassandra): IO[ResultSet] =
     statement
       .map(_.bind(params: _*))
-      .map(session.execute)
+      .map(cassandra.cqlSession.execute)
 }

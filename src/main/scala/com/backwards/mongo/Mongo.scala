@@ -3,22 +3,31 @@ package com.backwards.mongo
 import cats.effect.IO
 import cats.implicits._
 import fs2._
-import com.mongodb.reactivestreams.client.{MongoClient, MongoClients}
+import com.mongodb.reactivestreams.client.{MongoClient, MongoClients, MongoCollection, MongoDatabase}
 
-final case class Mongo(client: MongoClient, config: MongoConfig)
+final case class Mongo private(client: MongoClient, config: MongoConfig) {
+  def database(name: String = config.database.value): MongoDatabase =
+    client.getDatabase(name)
+
+  def collection[T](name: String, documentType: Class[T]): MongoCollection[T] =
+    database().getCollection(name, documentType)
+}
 
 object Mongo {
-  def mongoClient(config: IO[MongoConfig]): Stream[IO, MongoClient] = {
-    val acquire: IO[MongoClient] = config map { c =>
-      scribe info s"Acquiring Mongo client: $c"
+  def mongo(config: IO[MongoConfig]): Stream[IO, Mongo] = {
+    val acquire: IO[Mongo] = config map { config =>
+      scribe info s"Acquiring Mongo client: $config"
 
-      MongoClients.create(s"mongodb://${c.host.value}")
+      Mongo(
+        MongoClients create s"mongodb://${config.host.value}",
+        config
+      )
     }
 
-    val release: MongoClient => IO[Unit] =
-      mongoClient => IO {
+    val release: Mongo => IO[Unit] =
+      mongo => IO {
         scribe info "Releasing Mongo client"
-        mongoClient.close()
+        mongo.client.close()
       }
 
     Stream.bracket(acquire)(release)
