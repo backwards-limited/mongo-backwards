@@ -39,6 +39,23 @@ services:
     environment:
       ALLOW_EMPTY_PASSWORD: "yes"
 
+  mongo-client:
+    image: bitnami/mongodb:latest
+    hostname: mongo-client
+    container_name: mongo-client
+    links:
+      - mongo
+    depends_on:
+      - mongo
+    volumes:
+      - ./docker/mongo:/mongo
+    command: >
+      /bin/bash -c "
+        cd /mongo
+        ./schema.sh
+        sleep infinity
+      "
+
   cassandra:
     image: bitnami/cassandra:latest
     hostname: cassandra
