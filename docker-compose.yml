@@ -26,6 +26,7 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TOPIC_AUTO_CREATE: "true"
     depends_on:
       - zookeeper
 
@@ -37,6 +38,23 @@ services:
       - 27017:27017
     environment:
       ALLOW_EMPTY_PASSWORD: "yes"
+
+  mongo-client:
+    image: bitnami/mongodb:latest
+    hostname: mongo-client
+    container_name: mongo-client
+    links:
+      - mongo
+    depends_on:
+      - mongo
+    volumes:
+      - ./docker/mongo:/mongo
+    command: >
+      /bin/bash -c "
+        cd /mongo
+        ./schema.sh
+        sleep infinity
+      "
 
   cassandra:
     image: bitnami/cassandra:latest
