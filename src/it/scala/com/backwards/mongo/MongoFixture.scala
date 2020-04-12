@@ -18,10 +18,10 @@ trait MongoFixture extends UserFixture {
     }
 
   def seedUsers(mongo: Stream[IO, Mongo])(implicit C: ConcurrentEffect[IO]): Stream[IO, Mongo] =
-    mongo flatMap { implicit mongo =>
+    mongo flatTap { implicit mongo =>
       implicit val collection: MongoCollection[BsonDocument] = mongo.collection("users", classOf[BsonDocument])
 
-      Gen.listOfN(10, genUser).sample.fold(Stream.raiseError[IO](new Exception).covaryOutput[Mongo])(users => seedUsers(users).map(_ => mongo))
+      Stream.eval(IO.fromEither(Gen.listOfN(10, genUser).sample.toRight(new Exception("Odd! No user test data")))).flatMap(seedUsers)
     }
 
   def seedUsers(users: List[User])(implicit collection: MongoCollection[BsonDocument], C: ConcurrentEffect[IO]): Stream[IO, Int] =
