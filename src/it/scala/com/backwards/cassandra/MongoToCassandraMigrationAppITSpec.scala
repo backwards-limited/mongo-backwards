@@ -12,8 +12,7 @@ import com.backwards.mongo.Mongo.mongo
 import com.backwards.mongo.{MongoConfig, MongoFixture}
 
 class MongoToCassandraMigrationAppITSpec extends AnyWordSpec with Matchers with Inspectors with IOFixture with MongoFixture {
-  // TODO - Uncomment - First need code to "init" Cassandra to "truncate" all collections within keyspace
-  /*"No Mongo data" should {
+  "No Mongo data" should {
     "be migrated to Cassandra" in {
       val program =
         MongoToCassandraMigrationApp.program(
@@ -23,7 +22,7 @@ class MongoToCassandraMigrationAppITSpec extends AnyWordSpec with Matchers with 
 
       program.compile.toList.unsafeRunSync mustBe Nil
     }
-  }*/
+  }
 
   "Mongo data" should {
     "be migrated to Cassandra" in {
