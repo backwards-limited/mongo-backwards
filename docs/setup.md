@@ -17,13 +17,6 @@ $ brew install scala
 $ brew install sbt
 ```
 
-Other essentials (though optional):
-
-```bash
-$ brew install curl
-$ brew install httpie
-```
-
 These install the necessary Java and Scala environment, where [jenv](http://www.jenv.be) manages said environment.
 
 To configure our JVM environment:
@@ -39,3 +32,5 @@ From the available versions (if not yet set) set the latest:
 ```bash
 $ jenv local 14
 ```
+
+Finally [setup Docker](https://hub.docker.com/editions/community/docker-ce-desktop-mac/).

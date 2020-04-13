@@ -54,3 +54,21 @@ $ docker-compose down
 
 ## Examples
 
+To execute the examples, which are under [<project root>/src/it/scala](../src/it/scala) the dependent services need to be running. So as per above, first execute the [docker-compose.yml](../docker-compose.yml).
+
+#### Mongo -> Cassandra
+
+Take a look at [MigrationApp in package cassandra](../src/it/scala/com/backwards/cassandara/MigrationApp.scala) - Mongo is queried and said data is streamed to Cassandra.
+
+#### Mongo -> Kafka
+
+Take a look at [MigrationApp in package kafka](../src/it/scala/com/backwards/kafka/MigrationApp.scala) - Mongo is queried and said data is streamed to Kafka.
+
+#### Mongo -> HTTP Endpoint
+
+Take a look at [MigrationApp in package http](../src/it/scala/com/backwards/http/MigrationApp.scala) - Mongo is queried and said data is streamed to a HTTP endpoint.
+
+
+
+
+
