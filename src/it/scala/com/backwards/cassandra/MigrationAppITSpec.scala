@@ -11,11 +11,11 @@ import com.backwards.io.IOFixture
 import com.backwards.mongo.Mongo.mongo
 import com.backwards.mongo.{MongoConfig, MongoFixture}
 
-class MongoToCassandraMigrationAppITSpec extends AnyWordSpec with Matchers with Inspectors with IOFixture with MongoFixture {
+class MigrationAppITSpec extends AnyWordSpec with Matchers with Inspectors with IOFixture with MongoFixture {
   "No Mongo data" should {
     "be migrated to Cassandra" in {
       val program =
-        MongoToCassandraMigrationApp.program(
+        MigrationApp.program(
           init(mongo(config[MongoConfig]("mongo"))),
           cassandra(config[CassandraConfig]("cassandra"))
         )
@@ -27,7 +27,7 @@ class MongoToCassandraMigrationAppITSpec extends AnyWordSpec with Matchers with 
   "Mongo data" should {
     "be migrated to Cassandra" in {
       val program =
-        MongoToCassandraMigrationApp.program(
+        MigrationApp.program(
           seedUsers(init(mongo(config[MongoConfig]("mongo")))),
           cassandra(config[CassandraConfig]("cassandra"))
         )
