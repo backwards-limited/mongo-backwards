@@ -6,33 +6,32 @@ import org.scalatest.Inspectors
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import com.backwards.cassandra.Cassandra.cassandra
+import com.backwards.cassandra.MigrationApp._
 import com.backwards.config.PureConfig.config
 import com.backwards.io.IOFixture
 import com.backwards.mongo.Mongo.mongo
 import com.backwards.mongo.{MongoConfig, MongoFixture}
 
-class MongoToCassandraMigrationAppITSpec extends AnyWordSpec with Matchers with Inspectors with IOFixture with MongoFixture {
+class MigrationAppITSpec extends AnyWordSpec with Matchers with Inspectors with IOFixture with MongoFixture {
   "No Mongo data" should {
     "be migrated to Cassandra" in {
-      val program =
-        MongoToCassandraMigrationApp.program(
-          init(mongo(config[MongoConfig]("mongo"))),
-          cassandra(config[CassandraConfig]("cassandra"))
-        )
+      val users = program(
+        init(mongo(config[MongoConfig]("mongo"))),
+        cassandra(config[CassandraConfig]("cassandra"))
+      ).compile.toList.unsafeRunSync
 
-      program.compile.toList.unsafeRunSync mustBe Nil
+      users mustBe Nil
     }
   }
 
   "Mongo data" should {
     "be migrated to Cassandra" in {
-      val program =
-        MongoToCassandraMigrationApp.program(
-          seedUsers(init(mongo(config[MongoConfig]("mongo")))),
-          cassandra(config[CassandraConfig]("cassandra"))
-        )
+      val users = program(
+        seedUsers(init(mongo(config[MongoConfig]("mongo")))),
+        cassandra(config[CassandraConfig]("cassandra"))
+      ).compile.toList.unsafeRunSync
 
-      program.compile.toList.unsafeRunSync match {
+      users match {
         case users @ List(_, _ @ _*) => forAll(users)(_ mustBe a[Right[_, _]])
       }
     }

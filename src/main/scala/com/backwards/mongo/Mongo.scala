@@ -1,9 +1,12 @@
 package com.backwards.mongo
 
-import cats.effect.IO
+import cats.effect.{ConcurrentEffect, IO}
 import cats.implicits._
 import fs2._
+import org.mongodb.scala.bson.BsonDocument
 import com.mongodb.reactivestreams.client.{MongoClient, MongoClients, MongoCollection, MongoDatabase}
+import fs2.interop.reactivestreams._
+import com.backwards.mongo.bson.Decoder.ops._
 
 final case class Mongo private(client: MongoClient, config: MongoConfig) {
   def database(name: String = config.database.value): MongoDatabase =
@@ -31,5 +34,11 @@ object Mongo {
       }
 
     Stream.bracket(acquire)(release)
+  }
+
+  def users(implicit mongo: Mongo, C: ConcurrentEffect[IO]): Stream[IO, Throwable Either User] = {
+    val mongoCollection = mongo.collection("users", classOf[BsonDocument])
+
+    mongoCollection.find().toStream[IO].map(_.as[User])
   }
 }
