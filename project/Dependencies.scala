@@ -5,7 +5,7 @@ object Dependencies {
     scalatest, scalamock, scalacheck, scalacheckShapeless,
     pureConfig, scribe,
     cats, mouse, simulacrum, refined, monocle, shapeless, circe,
-    fs2, fs2Kafka, mongo, datastax
+    fs2, fs2Kafka, mongo, datastax, sttp
   ).flatten
   
   lazy val scalatest: Seq[ModuleID] = Seq(
@@ -113,5 +113,14 @@ object Dependencies {
     Seq(
       "java-driver-core", "java-driver-query-builder", "java-driver-mapper-processor", "java-driver-mapper-runtime"
     ).map(group % _ % version withSources() withJavadoc())
+  }
+
+  lazy val sttp: Seq[ModuleID] = {
+    val group = "com.softwaremill.sttp.client"
+    val version = "2.0.7"
+
+    Seq(
+      "core", "cats", "fs2", "circe", "async-http-client-backend-fs2", "async-http-client-backend-cats", "okhttp-backend"
+    ).map(group %% _ % version withSources() withJavadoc())
   }
 }
