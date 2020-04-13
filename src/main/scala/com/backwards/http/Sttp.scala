@@ -30,7 +30,7 @@ object Sttp {
     }
 
     val release: SttpBackend[IO, Nothing, WebSocketHandler] => IO[Unit] =
-      sttpBackend => IO {
+      sttpBackend => {
         scribe info "Releasing async HTTP client Cats backend client"
         sttpBackend.close()
       }

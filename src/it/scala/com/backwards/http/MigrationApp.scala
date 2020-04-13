@@ -14,7 +14,6 @@ import com.backwards.http.Sttp._
 import com.backwards.mongo.Mongo.{mongo, _}
 import com.backwards.mongo._
 
-// TODO - App shutsdown when using sync version of Sttp Backend but not using async???
 object MigrationApp extends IOApp with MongoFixture {
   def run(args: List[String]): IO[ExitCode] =
     program(
