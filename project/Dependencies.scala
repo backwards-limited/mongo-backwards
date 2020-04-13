@@ -120,7 +120,7 @@ object Dependencies {
     val version = "2.0.7"
 
     Seq(
-      "core", "cats", "fs2", "circe", "async-http-client-backend-fs2", "async-http-client-backend-cats", "okhttp-backend"
+      "core", "cats", "fs2", "circe", "async-http-client-backend-fs2", "async-http-client-backend-cats", "okhttp-backend", "httpclient-backend"
     ).map(group %% _ % version withSources() withJavadoc())
   }
 }

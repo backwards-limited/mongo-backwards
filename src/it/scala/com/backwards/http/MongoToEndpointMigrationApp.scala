@@ -71,7 +71,7 @@ object MongoToEndpointMigrationApp extends IOApp with MongoFixture {
 
       val stream: Stream[IO, ByteBuffer] = Stream.emits(List("Hello, ".getBytes, "world".getBytes)).map(ByteBuffer.wrap)
 
-      Stream.emit {
+      Stream.eval {
         basicRequest
           .streamBody(stream)
           .post(uri"https://httpbin.org/post")
