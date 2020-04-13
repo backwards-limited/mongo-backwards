@@ -21,11 +21,11 @@ object MigrationApp extends IOApp with MongoFixture {
     for {
       implicit0(cassandra: Cassandra) <- cassandra
       implicit0(mongo: Mongo) <- mongo
-      user <- users.evalMap(_.fold(IO.raiseError, processUser))
+      user <- users.evalMap(_.fold(IO.raiseError, process))
     } yield user
 
-  def processUser(implicit cassandra: Cassandra): User => IO[Throwable Either User] =
-    user => for {
+  def process(user: User)(implicit cassandra: Cassandra): IO[Throwable Either User] =
+    for {
       _ <- execute(cql"insert into user_by_id (id, email, firstname, lastname) values (?, ?, ?, ?)", user.id, user.email, user.firstName, user.lastName)
       resultSet <- execute(cql"select * from user_by_id where id = ?", user.id)
     } yield {

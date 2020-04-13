@@ -31,16 +31,15 @@ object MigrationApp extends IOApp with MongoFixture {
     for {
       implicit0(kafkaProducer: KafkaProducer[IO, UUID, User]) <- kafkaProducer
       implicit0(mongo: Mongo) <- mongo
-      user <- users.evalMap(_.fold(IO.raiseError, processUser))
+      user <- users.evalMap(_.fold(IO.raiseError, process))
     } yield user
 
-  def processUser(implicit kafkaProducer: KafkaProducer[IO, UUID, User]): User => IO[ProducerResult[UUID, User, Unit]] =
-    user => {
-      val record = ProducerRecord("users", user.id, user)
+  def process(user: User)(implicit kafkaProducer: KafkaProducer[IO, UUID, User]): IO[ProducerResult[UUID, User, Unit]] = {
+    val record = ProducerRecord("users", user.id, user)
 
-      kafkaProducer.produce(ProducerRecords.one(record)).flatten.map { producerResult =>
-        scribe.info(producerResult.toString)
-        producerResult
-      }
+    kafkaProducer.produce(ProducerRecords.one(record)).flatten.map { producerResult =>
+      scribe.info(producerResult.toString)
+      producerResult
     }
+  }
 }
